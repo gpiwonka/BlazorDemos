@@ -1,0 +1,409 @@
+﻿@page "/"
+@using GlobeSelect.Components
+@using GlobeSelect.Core.Models
+@using GlobeSelect.Core.Services
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<PageTitle>GlobeSelect Demo</PageTitle>
+
+<div class="demo-app">
+    <header class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <span class="globe-icon">🌍</span>
+                GlobeSelect
+                <span class="version-badge">v1.0</span>
+            </h1>
+            <p class="hero-subtitle">
+                Professional Country Selector for Blazor with Multi-Language Support, 
+                Validation, Multi-Select and Smart Features
+            </p>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">200+</span>
+                    <span class="stat-label">Countries</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">5</span>
+                    <span class="stat-label">Languages</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">∞</span>
+                    <span class="stat-label">Possibilities</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="demo-container">
+        <!-- Quick Start -->
+        <section class="demo-section highlight-section">
+            <div class="section-header">
+                <h2>🚀 Quick Start</h2>
+                <p>The simplest way to get started with GlobeSelect</p>
+            </div>
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3>Basic Usage</h3>
+                    <GlobeSelect.Components.CountrySelector @bind-SelectedCountryCode="basicCountry" />
+                    <div class="result-display">
+                        <strong>Selected:</strong> 
+                        <span class="result-value">@(string.IsNullOrEmpty(basicCountry) ? "None" : basicCountry)</span>
+                    </div>
+                </div>
+                <div class="code-example">
+                    <h4>Code:</h4>
+                    <pre><code>&lt;GlobeSelect @@bind-SelectedCountryCode="country" /&gt;</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Multi-Language -->
+        <section class="demo-section">
+            <div class="section-header">
+                <h2>🌍 Multi-Language Support</h2>
+                <p>Supports German, English, French, Italian, and Spanish</p>
+            </div>
+            <div class="language-demo">
+                <div class="language-selector">
+                    <label>Choose Language:</label>
+                    <select @bind="currentLanguage" class="language-dropdown">
+                        <option value="@SupportedLanguage.German">🇩🇪 Deutsch</option>
+                        <option value="@SupportedLanguage.English">🇬🇧 English</option>
+                        <option value="@SupportedLanguage.French">🇫🇷 Français</option>
+                        <option value="@SupportedLanguage.Italian">🇮🇹 Italiano</option>
+                        <option value="@SupportedLanguage.Spanish">🇪🇸 Español</option>
+                    </select>
+                </div>
+                <div class="demo-card">
+                    <CountrySelector @bind-SelectedCountryCode="languageCountry"
+                                 Language="currentLanguage"
+                                 ShowCountryCodes="true"
+                                 PreferredRegion="Europe" />
+                    <div class="result-display">
+                        <strong>Selected:</strong> 
+                        <span class="result-value">@languageCountry</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Multi-Select -->
+        <section class="demo-section">
+            <div class="section-header">
+                <h2>✅ Multi-Select Mode</h2>
+                <p>Select multiple countries with beautiful chip display</p>
+            </div>
+            <div class="demo-card">
+                <CountrySelector MultiSelect="true"
+                             @bind-SelectedCountryCodes="multiCountries"
+                             Language="SupportedLanguage.English"
+                             ShowCountryCodes="true"
+                             ShowPhoneCodes="true"
+                             MaxSelections="6"
+                             PopularCountries="businessCountries" />
+                <div class="result-display">
+                    <strong>Selected (@multiCountries.Count):</strong>
+                    <div class="selected-list">
+                        @if (multiCountries.Any())
+                        {
+                            @string.Join(", ", multiCountries)
+                        }
+                        else
+                        {
+                            <span class="empty-state">No countries selected</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Validation -->
+        <section class="demo-section">
+            <div class="section-header">
+                <h2>⚠️ Validation & States</h2>
+                <p>Built-in validation with custom error messages and disabled states</p>
+            </div>
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3>Required Field</h3>
+                    <CountrySelector @bind-SelectedCountryCode="requiredCountry"
+                                 IsRequired="true"
+                                 ValidationError="@validationError"
+                                 Language="SupportedLanguage.German" />
+                    <div class="demo-controls">
+                        <button @onclick="ValidateField" class="btn btn-primary">Validate</button>
+                        <button @onclick="ClearField" class="btn btn-secondary">Clear</button>
+                    </div>
+                    <div class="result-display">
+                        <strong>Selected:</strong> 
+                        <span class="result-value">@(string.IsNullOrEmpty(requiredCountry) ? "None" : requiredCountry)</span>
+                    </div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>Disabled State</h3>
+                    <GlobeSelect SelectedCountryCode="DE"
+                                 IsDisabled="true"
+                                 Language="SupportedLanguage.German" />
+                    <p class="help-text">This selector is disabled and cannot be changed.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Advanced Features -->
+        <section class="demo-section">
+            <div class="section-header">
+                <h2>🔥 Advanced Features</h2>
+                <p>Phone codes, regions, recent selections and more</p>
+            </div>
+            <div class="demo-grid">
+                <div class="demo-card">
+                    <h3>Full Featured</h3>
+                    <CountrySelector @bind-SelectedCountryCode="advancedCountry"
+                                 Language="SupportedLanguage.English"
+                                 ShowCountryCodes="true"
+                                 ShowPhoneCodes="true"
+                                 EnableRecentlySelected="true"
+                                 RegionGrouping="RegionGrouping.SubRegion"
+                                 PopularCountries="europeanCountries"
+                                 PreferredRegion="Central Europe" />
+                    <div class="result-display">
+                        <strong>Selected:</strong> 
+                        <span class="result-value">@advancedCountry</span>
+                    </div>
+                </div>
+                
+                <div class="demo-card">
+                    <h3>Business Use Case</h3>
+                    <CountrySelector MultiSelect="true"
+                                 @bind-SelectedCountryCodes="businessMarkets"
+                                 Language="SupportedLanguage.English"
+                                 ShowPhoneCodes="true"
+                                 MaxSelections="8"
+                                 PopularCountries="topMarkets"
+                                 Placeholder="Select your target markets..." />
+                    <div class="result-display">
+                        <strong>Target Markets (@businessMarkets.Count):</strong>
+                        <div class="selected-list">
+                            @if (businessMarkets.Any())
+                            {
+                                @string.Join(", ", businessMarkets)
+                            }
+                            else
+                            {
+                                <span class="empty-state">No markets selected</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Configuration Playground -->
+        <section class="demo-section playground-section">
+            <div class="section-header">
+                <h2>🎮 Configuration Playground</h2>
+                <p>Try different settings and see the component in action</p>
+            </div>
+            <div class="playground">
+                <div class="config-panel">
+                    <h3>Settings</h3>
+                    <div class="config-grid">
+                        <div class="config-group">
+                            <label>Language:</label>
+                            <select @bind="playgroundLanguage" class="config-input">
+                                <option value="@SupportedLanguage.German">Deutsch</option>
+                                <option value="@SupportedLanguage.English">English</option>
+                                <option value="@SupportedLanguage.French">Français</option>
+                                <option value="@SupportedLanguage.Italian">Italiano</option>
+                                <option value="@SupportedLanguage.Spanish">Español</option>
+                            </select>
+                        </div>
+                        
+                        <div class="config-group">
+                            <label>Region Grouping:</label>
+                            <select @bind="playgroundRegionGrouping" class="config-input">
+                                <option value="@RegionGrouping.Continent">Continent</option>
+                                <option value="@RegionGrouping.Region">Region</option>
+                                <option value="@RegionGrouping.SubRegion">Sub-Region</option>
+                            </select>
+                        </div>
+                        
+                        <div class="config-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" @bind="playgroundShowCodes" />
+                                Show Country Codes
+                            </label>
+                        </div>
+                        
+                        <div class="config-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" @bind="playgroundShowPhones" />
+                                Show Phone Codes
+                            </label>
+                        </div>
+                        
+                        <div class="config-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" @bind="playgroundMultiSelect" />
+                                Multi-Select Mode
+                            </label>
+                        </div>
+                        
+                        <div class="config-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" @bind="playgroundGroupByRegion" />
+                                Group by Region
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="playground-demo">
+                    <h3>Live Demo</h3>
+                    @if (playgroundMultiSelect)
+                    {
+                        <CountrySelector MultiSelect="true"
+                                     @bind-SelectedCountryCodes="playgroundMultiCountries"
+                                     Language="playgroundLanguage"
+                                     RegionGrouping="playgroundRegionGrouping"
+                                     ShowCountryCodes="playgroundShowCodes"
+                                     ShowPhoneCodes="playgroundShowPhones"
+                                     GroupByRegion="playgroundGroupByRegion"
+                                     EnableRecentlySelected="true"
+                                     PopularCountries="europeanCountries" />
+                    }
+                    else
+                    {
+                        <CountrySelector @bind-SelectedCountryCode="playgroundCountry"
+                                     Language="playgroundLanguage"
+                                     RegionGrouping="playgroundRegionGrouping"
+                                     ShowCountryCodes="playgroundShowCodes"
+                                     ShowPhoneCodes="playgroundShowPhones"
+                                     GroupByRegion="playgroundGroupByRegion"
+                                     EnableRecentlySelected="true"
+                                     PopularCountries="europeanCountries" />
+                    }
+                    
+                    <div class="result-display">
+                        <strong>Result:</strong>
+                        @if (playgroundMultiSelect)
+                        {
+                            <div class="selected-list">
+                                @if (playgroundMultiCountries.Any())
+                                {
+                                    @string.Join(", ", playgroundMultiCountries)
+                                }
+                                else
+                                {
+                                    <span class="empty-state">Nothing selected</span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <span class="result-value">@(string.IsNullOrEmpty(playgroundCountry) ? "None" : playgroundCountry)</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </section>
+
+       
+    </div>
+
+    <footer class="demo-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>🌍 GlobeSelect</h4>
+                <p>Professional Country Selector for Blazor</p>
+            </div>
+            <div class="footer-section">
+                <h4>🔗 Links</h4>
+                <a href="#" class="footer-link">GitHub Repository</a>
+                <a href="#" class="footer-link">Documentation</a>
+            </div>
+            <div class="footer-section">
+                <h4>🎯 Features</h4>
+                <ul class="feature-list">
+                    <li>Multi-Language Support</li>
+                    <li>Validation & Error Handling</li>
+                    <li>Multi-Select Mode</li>
+                    <li>Keyboard Navigation</li>
+                    <li>Responsive Design</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 GlobeSelect. Built with ❤️ for the Blazor community.</p>
+        </div>
+    </footer>
+</div>
+
+@code {
+    // Basic demo variables
+    private string basicCountry = "";
+    private string languageCountry = "";
+    private string requiredCountry = "";
+    private string advancedCountry = "";
+    private string playgroundCountry = "";
+    private string? validationError = "";
+
+    // Multi-select variables
+    private List<string> multiCountries = new();
+    private List<string> businessMarkets = new();
+    private List<string> playgroundMultiCountries = new();
+
+    // Language settings
+    private SupportedLanguage currentLanguage = SupportedLanguage.German;
+    private SupportedLanguage playgroundLanguage = SupportedLanguage.English;
+
+    // Playground settings
+    private RegionGrouping playgroundRegionGrouping = RegionGrouping.Continent;
+    private bool playgroundShowCodes = false;
+    private bool playgroundShowPhones = false;
+    private bool playgroundMultiSelect = false;
+    private bool playgroundGroupByRegion = true;
+
+    // Popular countries lists
+    private List<string> businessCountries = new() { "US", "GB", "DE", "FR", "CA", "AU" };
+    private List<string> europeanCountries = new() { "DE", "FR", "IT", "ES", "NL", "AT", "CH", "BE" };
+    private List<string> topMarkets = new() { "US", "CN", "JP", "DE", "GB", "IN", "FR", "IT", "BR", "CA" };
+
+    // Validation methods
+    private void ValidateField()
+    {
+        if (string.IsNullOrEmpty(requiredCountry))
+        {
+            validationError = "Please select a country";
+        }
+        else
+        {
+            validationError = "";
+        }
+    }
+
+    private void ClearField()
+    {
+        requiredCountry = "";
+        validationError = "";
+    }
+
+    // Copy to clipboard functionality
+    private async Task CopyToClipboard(string text)
+    {
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", text);
+            // Optional: Show a toast or notification that text was copied
+            await JSRuntime.InvokeVoidAsync("console.log", $"Copied to clipboard: {text}");
+        }
+        catch (Exception ex)
+        {
+            // Fallback for browsers that don't support clipboard API
+            await JSRuntime.InvokeVoidAsync("console.error", $"Failed to copy to clipboard: {ex.Message}");
+        }
+    }
+}
