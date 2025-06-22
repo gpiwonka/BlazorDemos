@@ -1,11 +1,12 @@
 using GlobeSelect.Extensions;
-using GlobeSelectDemo.Components;
+using Demos.Components;  
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
-    
+
     .AddInteractiveServerComponents();
 
 
@@ -26,6 +27,7 @@ app.UseHttpsRedirection();
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+app.UseStaticFiles();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
